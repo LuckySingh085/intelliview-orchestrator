@@ -1,13 +1,13 @@
-ets us mark the DB session as
+"""Celery Application Setup.
+
+Initialises Celery with the Redis broker, sensible reliability defaults,
+and a session_failed signal that lets us mark the DB session as
 FAILED only after Celery has exhausted its retries (rather than on
 every transient exception).
 """
 
 from celery import Celery, signals
-"""Celery Application Setup.
 
-Initialises Celery with the Redis broker, sensible reliability defaults,
-and a `session_failed` signal that l
 from config import REDIS_URL
 
 celery_app = Celery("interview_tasks", broker=REDIS_URL, backend=REDIS_URL)
@@ -43,7 +43,7 @@ def _on_task_failure(task_id, exception, args, kwargs, traceback, einfo, **_extr
     """When a task fails permanently (retries exhausted), mark the
     session as FAILED so the dashboard reflects reality.
 
-    `args[0]` is the session_id passed to `process_interview_session`.
+    args[0] is the session_id passed to process_interview_session.
     Imported lazily so importing this module doesn't pull in the DB stack
     before the worker process is ready.
     """
@@ -58,8 +58,8 @@ def _on_task_failure(task_id, exception, args, kwargs, traceback, einfo, **_extr
         # Don't let a signal handler crash the worker.
         import logging
 
-        logging.getLogger(__name__).warning("task_failure handler failed: %s", exc)
+        logging.getLogger(name).warning("task_failure handler failed: %s", exc)
 
 
-if __name__ == "__main__":
+if name == "main":
     celery_app.start()
