@@ -65,5 +65,5 @@ def _on_task_failure(task_id, exception, args, kwargs, traceback, einfo, **_extr
         logging.getLogger(name).warning("task_failure handler failed: %s", exc)
 
 
-if name == "main":
+if __name__=="__main__":
     celery_app.start()
