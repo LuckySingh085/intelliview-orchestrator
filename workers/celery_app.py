@@ -8,9 +8,13 @@ every transient exception).
 
 from celery import Celery, signals
 
-from config import REDIS_URL
+from config import REDIS_URL, DATABASE_URL
 
-celery_app = Celery("interview_tasks", broker=REDIS_URL, backend=REDIS_URL)
+celery_app = Celery(
+    "interview_tasks",
+    broker=REDIS_URL,
+    backend=f"db+{DATABASE_URL}",
+)
 
 celery_app.conf.update(
     task_serializer="json",
