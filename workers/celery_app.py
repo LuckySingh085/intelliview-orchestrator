@@ -8,7 +8,11 @@ every transient exception).
 
 from celery import Celery, signals
 
+import logging
+
 from config import REDIS_URL, DATABASE_URL
+
+logger = logging.getLogger(name__)
 
 celery_app = Celery(
     "interview_tasks",
