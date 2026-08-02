@@ -12,7 +12,7 @@ from celery import Celery, signals
 
 from config import REDIS_URL, DATABASE_URL
 
-logger = logging.getLogger(name)
+logger = logging.getLogger(name__)
 
 celery_app = Celery(
     "interview_tasks",
@@ -67,5 +67,5 @@ def _on_task_failure(task_id, exception, args, kwargs, traceback, einfo, **_extr
         logger.warning("task_failure handler failed: %s", exc)
 
 
-if name == "main":
+if __name__ == "__main__":
     celery_app.start()
