@@ -60,9 +60,7 @@ def _on_task_failure(task_id, exception, args, kwargs, traceback, einfo, **_extr
         SessionManager().mark_session_failed(session_id, f"Celery task exhausted retries: {exception!s}")
     except Exception as exc:
         # Don't let a signal handler crash the worker.
-        import logging
-
-        logging.getLogger(name).warning("task_failure handler failed: %s", exc)
+        
 
 
 if __name__=="__main__":
