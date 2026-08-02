@@ -6,13 +6,13 @@ FAILED only after Celery has exhausted its retries (rather than on
 every transient exception).
 """
 
-from celery import Celery, signals
-
 import logging
+
+from celery import Celery, signals
 
 from config import REDIS_URL, DATABASE_URL
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(name)
 
 celery_app = Celery(
     "interview_tasks",
@@ -33,7 +33,6 @@ celery_app.conf.update(
     task_reject_on_worker_lost=True,
     worker_prefetch_multiplier=1,  # fair distribution across workers
     broker_connection_retry_on_startup=True,
-    # Periodic beat schedule — scan for due retries every 60 seconds
     beat_schedule={
         "scan-due-retries": {
             "task": "workers.tasks.scan_and_dispatch_retries",
@@ -50,10 +49,6 @@ celery_app.autodiscover_tasks(["workers"])
 def _on_task_failure(task_id, exception, args, kwargs, traceback, einfo, **_extra):
     """When a task fails permanently (retries exhausted), mark the
     session as FAILED so the dashboard reflects reality.
-
-    args[0] is the session_id passed to process_interview_session.
-    Imported lazily so importing this module doesn't pull in the DB stack
-    before the worker process is ready.
     """
     try:
         from orchestrator.session_manager import SessionManager
@@ -61,11 +56,16 @@ def _on_task_failure(task_id, exception, args, kwargs, traceback, einfo, **_extr
         session_id = args[0] if args else None
         if not session_id:
             return
-        SessionManager().mark_session_failed(session_id, f"Celery task exhausted retries: {exception!s}")
+
+        SessionManager().mark_session_failed(
+            session_id,
+            f"Celery task exhausted retries: {exception!s}",
+        )
+
     except Exception as exc:
         # Don't let a signal handler crash the worker.
-        
+        logger.warning("task_failure handler failed: %s", exc)
 
 
-if __name__=="__main__":
+if name == "main":
     celery_app.start()
